@@ -10,6 +10,7 @@ import { Post } from './entities/post.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { ProfileEntity } from './../profile/entities/profile.entity';
+import { PostLike } from './entities/post-like.entity';
 
 @Injectable()
 export class PostService {
@@ -18,7 +19,9 @@ export class PostService {
     private readonly postRepo: Repository<Post>,
     @InjectRepository(Post)
     private readonly profileRepo: Repository<ProfileEntity>,
-  ) { }
+    @InjectRepository(PostLike)
+    private readonly postLikeRepo: Repository<PostLike>, // Yangi
+  ) {}
 
   // CREATE
   async create(userId: number, createPostDto: CreatePostDto): Promise<Post> {
@@ -47,9 +50,6 @@ export class PostService {
     return { data, total, page, limit };
   }
 
-
-
-
   // GET USER POSTS
   async findUserPosts(
     userId: number,
@@ -73,7 +73,7 @@ export class PostService {
   async findOne(id: number): Promise<Post> {
     const post = await this.postRepo.findOne({
       where: { id },
-      relations: ['user', "user.profile",],
+      relations: ['user', 'user.profile'],
     });
 
     if (!post) {
@@ -92,7 +92,7 @@ export class PostService {
     const post = await this.findOne(id);
 
     if (post.userId !== userId) {
-      throw new ForbiddenException('Bu postni tahrirlashga ruxsat yo\'q');
+      throw new ForbiddenException("Bu postni tahrirlashga ruxsat yo'q");
     }
 
     Object.assign(post, updatePostDto);
@@ -104,7 +104,7 @@ export class PostService {
     const post = await this.findOne(id);
 
     if (post.userId !== userId) {
-      throw new ForbiddenException('Bu postni o\'chirishga ruxsat yo\'q');
+      throw new ForbiddenException("Bu postni o'chirishga ruxsat yo'q");
     }
 
     await this.postRepo.remove(post);
@@ -116,20 +116,33 @@ export class PostService {
     post.views += 1;
     return this.postRepo.save(post);
   }
+  async toggleLike(
+    postId: number,
+    userId: number,
+  ): Promise<{ liked: boolean; likes: number }> {
+    const post = await this.postRepo.findOne({ where: { id: postId } });
 
-  // TOGGLE LIKE
-  async toggleLike(id: number, userId: number): Promise<{ liked: boolean; likes: number }> {
-    const post = await this.findOne(id);
+    if (!post) {
+      throw new NotFoundException('Post topilmadi');
+    }
 
-    // In real app, check if user already liked (separate table)
-    // For now, simple increment/decrement
-    const liked = true; // Placeholder
-    post.likes += liked ? 1 : -1;
+    const existingLike = await this.postLikeRepo.findOne({
+      where: { postId, userId },
+    });
 
-    await this.postRepo.save(post);
-    return { liked, likes: post.likes };
+    if (existingLike) {
+      await this.postLikeRepo.remove(existingLike);
+      post.likes -= 1;
+      await this.postRepo.save(post);
+      return { liked: false, likes: post.likes };
+    } else {
+      const newLike = this.postLikeRepo.create({ postId, userId });
+      await this.postLikeRepo.save(newLike);
+      post.likes += 1;
+      await this.postRepo.save(post);
+      return { liked: true, likes: post.likes };
+    }
   }
-
   // GET TRENDING
   async getTrending(
     page: number = 1,
@@ -148,4 +161,3 @@ export class PostService {
     return { data, total, page, limit };
   }
 }
-

@@ -18,6 +18,7 @@ import { FollowEntity } from './follow/entities/follow.entity';
 import { PostModule } from './post/post.module';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { CommentModule } from './comment/comment.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { PassportModule } from '@nestjs/passport';
     ChatModule,
     FileModule,
     PostModule,
+    CommentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

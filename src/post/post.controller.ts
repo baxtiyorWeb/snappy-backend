@@ -136,6 +136,7 @@ export class PostController {
     const userId = req.user?.sub;
     return this.postService.toggleLike(id, userId);
   }
+  
 
   // ============================
   // GET TRENDING POSTS

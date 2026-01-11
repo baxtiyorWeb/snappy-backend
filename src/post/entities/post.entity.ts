@@ -1,4 +1,5 @@
 // src/post/entities/post.entity.ts
+import { Comment } from 'src/comment/entities/comment.entity';
 import { UserEntity } from './../../users/entities/user.entity';
 import {
   Entity,
@@ -8,7 +9,9 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
+import { PostLike } from './post-like.entity';
 
 @Entity('posts')
 export class Post {
@@ -22,6 +25,11 @@ export class Post {
   @JoinColumn({ name: 'userId' })
   user: UserEntity;
 
+  @OneToMany(() => Comment, (comment) => comment.post) // Yangi
+  commentsEntity: Comment[];
+
+  @OneToMany(() => PostLike, (postLike) => postLike.post) // Yangi
+  postLikes: PostLike[];
   @Column({ type: 'text' })
   videoUrl: string;
 
