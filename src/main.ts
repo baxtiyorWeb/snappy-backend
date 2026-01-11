@@ -23,7 +23,6 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
   });
 
-
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

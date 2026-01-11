@@ -6,8 +6,6 @@ import * as path from 'path';
 
 @Injectable()
 export class UploadService {
-
-  // Multer orqali kelgan fayl
   async uploadFile(file: Express.Multer.File, type?: string): Promise<string> {
     try {
       const fileName = `${type || 'file'}/${Date.now()}-${Math.random().toString(36).substring(2)}-${file.originalname}`;
@@ -19,11 +17,12 @@ export class UploadService {
       return blob.url;
     } catch (error) {
       console.error('Vercel Blob yuklashda xatolik:', error);
-      throw new InternalServerErrorException('Vercel Blob-ga fayl yuklashda muammo yuz berdi!');
+      throw new InternalServerErrorException(
+        'Vercel Blob-ga fayl yuklashda muammo yuz berdi!',
+      );
     }
   }
 
-  // Path orqali upload (JSON, PDF, boshqa static fayllar)
   async uploadFileFromPath(filePath: string, type?: string): Promise<string> {
     try {
       const buffer = fs.readFileSync(filePath);
@@ -37,17 +36,20 @@ export class UploadService {
       return blob.url;
     } catch (error) {
       console.error('Vercel Blob path upload xatoligi:', error);
-      throw new InternalServerErrorException('Vercel Blob-ga fayl yuklashda muammo yuz berdi!');
+      throw new InternalServerErrorException(
+        'Vercel Blob-ga fayl yuklashda muammo yuz berdi!',
+      );
     }
   }
 
-  // Faylni o'chirish
   async deleteFile(url: string): Promise<void> {
     try {
       await del(url);
     } catch (error) {
       console.error('Vercel Blob delete xatoligi:', error);
-      throw new InternalServerErrorException('Vercel Blob-dan fayl o\'chirishda muammo yuz berdi!');
+      throw new InternalServerErrorException(
+        "Vercel Blob-dan fayl o'chirishda muammo yuz berdi!",
+      );
     }
   }
 }

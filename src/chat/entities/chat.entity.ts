@@ -1,42 +1,56 @@
 import {
-  Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn
-} from "typeorm";
-import { ParticipantEntity } from "./participant.entity";
-import { MessageEntity } from "./message.entity";
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Index,
+} from 'typeorm';
+import { MessageEntity } from './message.entity';
+import { ParticipantEntity } from './participant.entity';
 
-@Entity("chats")
+@Entity('chats')
 export class ChatEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  // 1-to-1 yoki guruh
-  @Column({ default: false })
+  @Column({ type: 'boolean', default: false })
   isGroup: boolean;
 
-  @Column({ type: "varchar", length: 255, nullable: true })
-  description: string | null;
-
-  @Column({ type: "varchar", length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   title: string | null;
 
-  @Column({ type: "varchar", length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 500, nullable: true })
   avatar: string | null;
 
-  // DM uchun unique key (2 foydalanuvchi uchun)
-  @Column({ type: "varchar", length: 50, nullable: true, unique: true })
+  @Column({ type: 'text', nullable: true })
+  description: string | null;
+
+  // DM (Direct Message) uchun unique key
+  // Format: "profileId1-profileId2" (kichikdan kattaga)
+  @Column({ type: 'varchar', length: 100, nullable: true, unique: true })
+  @Index() // Tez qidirish uchun
   dmKey: string | null;
 
-  @OneToMany(() => ParticipantEntity, (p) => p.chat)
-  participants: ParticipantEntity[];
-
-  @OneToMany(() => MessageEntity, (m) => m.chat)
+  @OneToMany(() => MessageEntity, (message) => message.chat, {
+    cascade: true,
+  })
   messages: MessageEntity[];
 
-
+  @OneToMany(() => ParticipantEntity, (participant) => participant.chat, {
+    cascade: true,
+  })
+  participants: ParticipantEntity[];
 
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  // Virtual fields (database'da saqlanmaydi)
+  lastMessage?: MessageEntity;
+  unreadCount?: number;
+  participantCount?: number;
 }

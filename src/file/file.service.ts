@@ -13,7 +13,6 @@ export class FileService {
     private readonly uploadService: UploadService,
   ) { }
 
-  // Faylni upload qilish va saqlashni **bir joyda** bajaradi
   async createFile(file: Express.Multer.File): Promise<FileEntity> {
     const url = await this.uploadService.uploadFile(file);
     const entity = this.repo.create({ url, mimeType: file.mimetype });
